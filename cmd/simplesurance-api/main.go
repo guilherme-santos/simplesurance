@@ -3,6 +3,11 @@ package main
 import (
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/guilherme-santos/simplesurance/file"
+	"github.com/guilherme-santos/simplesurance/http"
 )
 
 func getEnvVar(envvar string) string {
@@ -25,11 +30,25 @@ func main() {
 	// counterService := sqlite.NewCounterService(filename)
 	// counterService := mongodb.NewCounterService(filename)
 
+	// Run worker
+	counterService.Start()
+	defer counterService.Stop()
+
 	counterHandler := http.NewCounterHandler(counterService)
 	router := http.NewRouter(counterHandler)
 
-	err := router.Run(apiPort)
-	if err != nil {
-		log.Fatal("Cannot run webserver: ", err.Error())
-	}
+	go func() {
+		err := router.Run(apiPort)
+		if err != nil {
+			log.Fatalln("Cannot run webserver:", err)
+		}
+	}()
+
+	// If you CONTROL+C defer functions will not be called, to fix that
+	// I'm dealing here with this signals to gracefully shutdown
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+	sig := <-sigChan
+
+	log.Printf("Shutting down, %v signal received\n", sig)
 }
