@@ -10,7 +10,7 @@ integration-test:
 	go test -v -tags integration ./...
 
 run: build
-	./simplesurance-api
+	@export `cat ${mkfile_path}.env | xargs`; ./simplesurance-api
 
 build:
 	go build -o simplesurance-api cmd/simplesurance-api/main.go
