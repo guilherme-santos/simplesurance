@@ -6,9 +6,6 @@ dep:
 test:
 	go test -v ./...
 
-integration-test:
-	go test -v -tags integration ./...
-
 run: build
 	@export `cat ${mkfile_path}.env | xargs`; ./simplesurance-api
 
@@ -22,7 +19,6 @@ docker-build:
 	docker build -t guilherme-santos/simplesurance:build . -f Dockerfile.build
 	docker create --name simplesurance-builded guilherme-santos/simplesurance:build
 	docker cp simplesurance-builded:/go/src/github.com/guilherme-santos/simplesurance/simplesurance-api .
-	docker cp simplesurance-builded:/etc/ssl/certs/ca-certificates.crt .
 	docker rm -f simplesurance-builded
 
 docker-image: docker-build
